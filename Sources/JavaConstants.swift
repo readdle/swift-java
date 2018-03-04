@@ -4,7 +4,6 @@
 
 import Foundation
 import java_swift
-import JavaCoder
 
 // MARK: Java Classnames
 let ObjectClassname = "java/lang/Object"

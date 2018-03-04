@@ -11,14 +11,12 @@ let package = Package(
         )
     ],
     dependencies: [
-        // TODO: remove coder and java_swift dependencies
-        .package(url: "https://github.com/andriydruk/swift-java-coder.git", .branch("master")),
         .package(url: "https://github.com/andriydruk/java_swift.git", .branch("master")),
     ],
     targets: [
         .target(
             name: "Java",
-            dependencies: ["JavaCoder", "java_swift"],
+            dependencies: ["java_swift"],
             path: "Sources"
         ),
     ],
