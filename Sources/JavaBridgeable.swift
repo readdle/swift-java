@@ -25,25 +25,9 @@ extension JavaBridgeable {
     
 }
 
-extension Bool: JavaBridgeable {}
-extension Int: JavaBridgeable {}
-extension Int8: JavaBridgeable {}
-extension Int16: JavaBridgeable {}
-extension Int32: JavaBridgeable {}
-extension Int64: JavaBridgeable {}
-extension UInt: JavaBridgeable {}
-extension UInt8: JavaBridgeable {}
-extension UInt16: JavaBridgeable {}
-extension UInt32: JavaBridgeable {}
-extension UInt64: JavaBridgeable {}
-extension Float: JavaBridgeable {}
-extension Double: JavaBridgeable {}
 extension Array: JavaBridgeable {}
 extension Dictionary: JavaBridgeable {}
 extension Set: JavaBridgeable {}
-extension Date: JavaBridgeable {}
-extension Data: JavaBridgeable {}
-extension URL: JavaBridgeable {}
 
 extension String: JavaBridgeable {
 
@@ -137,4 +121,243 @@ extension Error where Self: RawRepresentable, Self.RawValue: UnsignedInteger {
         }
         return javaObject
     }
+}
+
+extension Int: JavaBridgeable {
+
+    public static func from(javaObject: jobject) throws -> Int {
+        return Int(JNI.CallIntMethod(javaObject, methodID: NumberIntValueMethod))
+    }
+
+    public func javaObject() throws -> jobject {
+        // jint for macOS and Android different, that's why we make cast to jint() here
+        let args = [jvalue(i: jint(self))]
+        return JNI.NewObject(IntegerClass, methodID: IntegerConstructor, args: args)!
+    }
+
+}
+
+extension Int8: JavaBridgeable {
+
+    public static func from(javaObject: jobject) throws -> Int8 {
+        return JNI.CallByteMethod(javaObject, methodID: NumberByteValueMethod)
+    }
+
+    public func javaObject() throws -> jobject {
+        let args = [jvalue(b: self)]
+        return JNI.NewObject(ByteClass, methodID: ByteConstructor, args: args)!
+    }
+
+}
+
+extension Int16: JavaBridgeable {
+
+    public static func from(javaObject: jobject) throws -> Int16 {
+        return JNI.CallShortMethod(javaObject, methodID: NumberShortValueMethod)
+    }
+
+    public func javaObject() throws -> jobject {
+        let args = [jvalue(s: self)]
+        return JNI.NewObject(ShortClass, methodID: ShortConstructor, args: args)!
+    }
+
+}
+
+extension Int32: JavaBridgeable {
+
+    public static func from(javaObject: jobject) throws -> Int32 {
+        return Int32(JNI.CallIntMethod(javaObject, methodID: NumberIntValueMethod))
+    }
+
+    public func javaObject() throws -> jobject {
+        let args = [jvalue(i: jint(self))]
+        return JNI.NewObject(IntegerClass, methodID: IntegerConstructor, args: args)!
+    }
+
+}
+
+extension Int64: JavaBridgeable {
+
+    public static func from(javaObject: jobject) throws -> Int64 {
+        return JNI.CallLongMethod(javaObject, methodID: NumberLongValueMethod)
+    }
+
+    public func javaObject() throws -> jobject {
+        let args = [jvalue(j: self)]
+        return JNI.NewObject(LongClass, methodID: LongConstructor, args: args)!
+    }
+
+}
+
+extension UInt: JavaBridgeable {
+
+    public static func from(javaObject: jobject) throws -> UInt {
+        return UInt(JNI.CallLongMethod(javaObject, methodID: NumberLongValueMethod))
+    }
+
+    public func javaObject() throws -> jobject {
+        let args = [jvalue(j:  Int64(self))]
+        return JNI.NewObject(LongClass, methodID: LongConstructor, args: args)!
+    }
+
+}
+
+extension UInt8: JavaBridgeable {
+
+    public static func from(javaObject: jobject) throws -> UInt8 {
+        return UInt8(JNI.CallShortMethod(javaObject, methodID: NumberShortValueMethod))
+    }
+
+    public func javaObject() throws -> jobject {
+        let args = [jvalue(s: Int16(self))]
+        return JNI.NewObject(ShortClass, methodID: ShortConstructor, args: args)!
+    }
+
+}
+
+extension UInt16: JavaBridgeable {
+
+    public static func from(javaObject: jobject) throws -> UInt16 {
+        return UInt16(JNI.CallIntMethod(javaObject, methodID: NumberIntValueMethod))
+    }
+
+    public func javaObject() throws -> jobject {
+        let args = [jvalue(i: jint(self))]
+        return JNI.NewObject(IntegerClass, methodID: IntegerConstructor, args: args)!
+    }
+
+}
+
+extension UInt32: JavaBridgeable {
+
+    public static func from(javaObject: jobject) throws -> UInt32 {
+        return UInt32(JNI.CallLongMethod(javaObject, methodID: NumberLongValueMethod))
+    }
+
+    public func javaObject() throws -> jobject {
+        let args = [jvalue(j: Int64(self))]
+        return JNI.NewObject(LongClass, methodID: LongConstructor, args: args)!
+    }
+
+}
+
+extension UInt64: JavaBridgeable {
+
+    public static func from(javaObject: jobject) throws -> UInt64 {
+        let javaString = JNI.CallObjectMethod(javaObject, methodID: ObjectToStringMethod)
+        defer {
+            JNI.api.DeleteLocalRef(JNI.env, javaString)
+        }
+        let stringRepresentation = String(javaObject: javaString)
+        return UInt64(stringRepresentation)!
+    }
+
+    public func javaObject() throws -> jobject {
+        var javaString = try String(self).javaObject()
+        defer {
+            JNI.api.DeleteLocalRef(JNI.env, javaString)
+        }
+        let args = [jvalue(l: javaString)]
+        return JNI.NewObject(BigIntegerClass, methodID: BigIntegerConstructor, args: args)!
+    }
+
+}
+
+extension Float: JavaBridgeable {
+
+    public static func from(javaObject: jobject) throws -> Float {
+        return JNI.api.CallFloatMethodA(JNI.env, javaObject, NumberFloatValueMethod, nil)
+    }
+
+    public func javaObject() throws -> jobject {
+        let args = [jvalue(f: self)]
+        return JNI.NewObject(FloatClass, methodID: FloatConstructor, args: args)!
+    }
+
+}
+
+extension Double: JavaBridgeable {
+
+    public static func from(javaObject: jobject) throws -> Double {
+        return JNI.api.CallDoubleMethodA(JNI.env, javaObject, NumberDoubleValueMethod, nil)
+    }
+
+    public func javaObject() throws -> jobject {
+        let args = [jvalue(d: self)]
+        return JNI.NewObject(DoubleClass, methodID: DoubleConstructor, args: args)!
+    }
+
+}
+
+extension Bool: JavaBridgeable {
+
+    public static func from(javaObject: jobject) throws -> Bool {
+        return (JNI.CallBooleanMethod(javaObject, methodID: NumberBooleanValueMethod) == JNI.TRUE)
+    }
+
+    public func javaObject() throws -> jobject {
+        let args = [jvalue(z: self ? JNI.TRUE : JNI.FALSE)]
+        return JNI.NewObject(BooleanClass, methodID: BooleanConstructor, args: args)!
+    }
+
+}
+
+extension Date: JavaBridgeable {
+
+    public static func from(javaObject: jobject) throws -> Date {
+        let timeInterval = JNI.api.CallLongMethodA(JNI.env, javaObject, DateGetTimeMethod, nil)
+        // Java save TimeInterval in UInt64 milliseconds
+        return Date(timeIntervalSince1970: TimeInterval(timeInterval) / 1000.0)
+    }
+
+    public func javaObject() throws -> jobject {
+        let args = [jvalue(j: jlong(self.timeIntervalSince1970 * 1000))]
+        return JNI.NewObject(DateClass, methodID: DateConstructor, args: args)!
+    }
+
+}
+
+extension URL: JavaBridgeable {
+
+    public static func from(javaObject: jobject) throws -> URL {
+        let javaString = JNI.api.CallObjectMethodA(JNI.env, javaObject, ObjectToStringMethod, nil)
+        defer {
+            JNI.api.DeleteLocalRef(JNI.env, javaString)
+        }
+        return URL(string: String(javaObject: javaString))!
+    }
+
+    public func javaObject() throws -> jobject {
+        let javaString = try self.absoluteString.javaObject()
+        defer {
+            JNI.api.DeleteLocalRef(JNI.env, javaString)
+        }
+        let args = [jvalue(l: javaString)]
+        return JNI.CallStaticObjectMethod(UriClass, methodID: UriConstructor!, args: args)!
+    }
+
+}
+
+extension Data: JavaBridgeable {
+
+    public static func from(javaObject: jobject) throws -> Data {
+        let byteArray = JNI.CallObjectMethod(javaObject, methodID: ByteBufferArray)
+        guard let pointer = JNI.api.GetByteArrayElements(JNI.env, byteArray, nil) else {
+            throw JavaCodingError.cantFindObject("ByteBuffer")
+        }
+        let length = JNI.api.GetArrayLength(JNI.env, byteArray)
+        defer {
+            JNI.api.ReleaseByteArrayElements(JNI.env, byteArray, pointer, 0)
+        }
+        return Data.init(bytes: pointer, count: length)
+    }
+
+    public func javaObject() throws -> jobject {
+        let byteArray = JNI.api.NewByteArray(JNI.env, self.count)!
+        self.withUnsafeBytes({ (pointer: UnsafePointer<Int8>) -> Void in
+            JNI.api.SetByteArrayRegion(JNI.env, byteArray, 0, self.count, pointer)
+        })
+        return JNI.CallStaticObjectMethod(ByteBufferClass, methodID: ByteBufferWrap, args: [jvalue(l: byteArray)])!
+    }
+
 }
