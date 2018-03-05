@@ -73,16 +73,18 @@ open class JavaEncoder: Encoder {
     public var userInfo: [CodingUserInfoKey : Any] {
         return [:]
     }
-    
+
+    fileprivate var typeName: String?
     fileprivate let package: String
     fileprivate var javaObjects: [JNIStorageObject]
     fileprivate let missingFieldsStrategy: MissingFieldsStrategy
     
     // MARK: - Constructing a JSON Encoder
     /// Initializes `self` with default strategies.
-    public init(forPackage: String, missingFieldsStrategy: MissingFieldsStrategy = .throw) {
+    public init(forPackage: String, typeName: String? = nil, missingFieldsStrategy: MissingFieldsStrategy = .throw) {
         self.codingPath = [CodingKey]()
         self.package = forPackage
+        self.typeName = typeName
         self.javaObjects = [JNIStorageObject]()
         self.missingFieldsStrategy = missingFieldsStrategy
     }
@@ -514,7 +516,8 @@ extension JavaEncoder {
     fileprivate func box<T: Encodable>(_ value: T) throws -> JNIStorageObject {
         let storage: JNIStorageObject
         let typeName = String(describing: type(of: value))
-        if let encodableClosure = JavaCoderConfig.encodableClosures[typeName] {
+        if let encodableClosure = JavaCoderConfig.encodableClosures[typeName], typeName != self.typeName {
+            NSLog("Call encodableClosure for: " + typeName)
             let javaObject = try encodableClosure(value)
             storage = JNIStorageObject(type: .object(className: JavaCoderConfig.codableClassNames[typeName]!), javaObject: javaObject)
         }

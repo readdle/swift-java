@@ -17,10 +17,12 @@ public class JavaDecoder: Decoder {
     
     fileprivate var storage = [JNIStorageObject]()
     fileprivate let package: String
+    fileprivate let typeName: String?
     fileprivate let missingFieldsStrategy: MissingFieldsStrategy
     
-    public init(forPackage package: String, missingFieldsStrategy: MissingFieldsStrategy = .throw) {
+    public init(forPackage package: String, typeName: String? = nil, missingFieldsStrategy: MissingFieldsStrategy = .throw) {
         self.package = package
+        self.typeName = typeName
         self.missingFieldsStrategy = missingFieldsStrategy
     }
     
@@ -614,7 +616,7 @@ extension JavaDecoder {
     
     fileprivate func unbox<T: Decodable>(type: T.Type, javaObject: jobject) throws -> T {
         let typeName = String(describing: type)
-        if let decodableClosure = JavaCoderConfig.decodableClosures[typeName] {
+        if let decodableClosure = JavaCoderConfig.decodableClosures[typeName], typeName != self.typeName {
             return try decodableClosure(javaObject) as! T
         }
         else if type == AnyCodable.self {
