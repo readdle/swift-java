@@ -11,7 +11,7 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/andriydruk/java_swift.git", .branch("master")),
+        .package(url: "https://github.com/andriydruk/java_swift.git", .exact("2.1.2")),
     ],
     targets: [
         .target(
