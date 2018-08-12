@@ -2,8 +2,8 @@
 // Created by Andrew on 12/22/17.
 //
 
-import Foundation
 import CJavaVM
+import Foundation
 
 public typealias JavaEncodableClosure = (Encodable) throws -> jobject
 public typealias JavaDecodableClosure = (jobject) throws -> Decodable
@@ -79,7 +79,7 @@ public struct JavaCoderConfig {
         })
 
         RegisterType(type: UInt.self, javaClassname: LongClassname, encodableClosure: {
-            let args = [jvalue(j:  Int64($0 as! UInt))]
+            let args = [jvalue(j: Int64($0 as! UInt))]
             return JNI.NewObject(LongClass, methodID: LongConstructor, args: args)!
         }, decodableClosure: {
             return UInt(JNI.CallLongMethod($0, methodID: NumberLongValueMethod))
@@ -185,8 +185,7 @@ public struct JavaCoderConfig {
             defer {
                 JNI.api.ReleaseByteArrayElements(JNI.env, byteArray, pointer, 0)
             }
-            return Data.init(bytes: pointer, count: length)
+            return Data(bytes: pointer, count: length)
         })
     }
-
 }

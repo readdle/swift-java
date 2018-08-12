@@ -4,7 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "Java",
-    products:[
+    products: [
         .library(
             name: "Java", 
             targets:["Java"]

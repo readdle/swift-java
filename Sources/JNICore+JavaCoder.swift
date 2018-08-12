@@ -18,15 +18,15 @@ fileprivate extension NSLock {
     }
 }
     
-fileprivate var javaClasses = [String: jclass]()
-fileprivate var javaMethods = [String: jmethodID]()
-fileprivate var javaStaticMethods = [String: jmethodID]()
-fileprivate var javaFields = [String: jmethodID]()
+private var javaClasses = [String: jclass]()
+private var javaMethods = [String: jmethodID]()
+private var javaStaticMethods = [String: jmethodID]()
+private var javaFields = [String: jmethodID]()
 
-fileprivate let javaClassesLock = NSLock()
-fileprivate let javaMethodLock = NSLock()
-fileprivate let javaStaticMethodLock = NSLock()
-fileprivate let javaFieldLock = NSLock()
+private let javaClassesLock = NSLock()
+private let javaMethodLock = NSLock()
+private let javaStaticMethodLock = NSLock()
+private let javaFieldLock = NSLock()
 
 public extension JNICore {
     
@@ -316,9 +316,9 @@ extension String {
     }
 
     public func localJavaObject( _ locals: UnsafeMutablePointer<[jobject]> ) -> jobject? {
-        if let javaObject: jstring =  Array(utf16).withUnsafeBufferPointer( {
-            JNI.env?.pointee?.pointee.NewString( JNI.env, $0.baseAddress, jsize($0.count) )
-        } ) {
+        if let javaObject: jstring = Array(utf16).withUnsafeBufferPointer({
+            JNI.env?.pointee?.pointee.NewString(JNI.env, $0.baseAddress, jsize($0.count))
+        }) {
             locals.pointee.append( javaObject )
             return javaObject
         }

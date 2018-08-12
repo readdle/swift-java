@@ -5,9 +5,9 @@
 //  Created by Andrew on 10/14/17.
 //
 
-import Foundation
-import CoreFoundation
 import AnyCodable
+import CoreFoundation
+import Foundation
 
 public enum MissingFieldsStrategy: Error {
     case `throw`
@@ -69,7 +69,7 @@ open class JavaEncoder: Encoder {
     public var codingPath: [CodingKey]
     
     /// Contextual user-provided information for use during encoding.
-    public var userInfo: [CodingUserInfoKey : Any] {
+    public var userInfo: [CodingUserInfoKey: Any] {
         return [:]
     }
 
@@ -95,7 +95,7 @@ open class JavaEncoder: Encoder {
     /// - returns: A new `Data` value containing the encoded JSON data.
     /// - throws: `EncodingError.invalidValue` if a non-conforming floating-point value is encountered during encoding, and the encoding strategy is `.throw`.
     /// - throws: An error if any value throws an error during encoding.
-    open func encode<T : Encodable>(_ value: T) throws -> jobject {
+    open func encode<T: Encodable>(_ value: T) throws -> jobject {
         do {
             let storage = try self.box(value)
             assert(self.javaObjects.count == 0, "Missing encoding for \(self.javaObjects.count) objects")
@@ -158,7 +158,7 @@ open class JavaEncoder: Encoder {
 }
 
 // MARK: - Encoding Containers
-fileprivate class JavaObjectContainer<K : CodingKey> : KeyedEncodingContainerProtocol {
+private class JavaObjectContainer<K: CodingKey> : KeyedEncodingContainerProtocol {
     
     typealias Key = K
     
@@ -190,7 +190,7 @@ fileprivate class JavaObjectContainer<K : CodingKey> : KeyedEncodingContainerPro
         throw JavaCodingError.notSupported("JavaObjectContainer.encodeNil(forKey: \(key)")
     }
     
-    public func encode<T : Encodable>(_ value: T, forKey key: Key) throws {
+    public func encode<T: Encodable>(_ value: T, forKey key: Key) throws {
         do {
             let object = try self.encoder.box(value)
             let filed = try JNI.getJavaField(forClass: self.javaClass, field: key.stringValue, sig: object.type.sig)
@@ -226,7 +226,7 @@ fileprivate class JavaObjectContainer<K : CodingKey> : KeyedEncodingContainerPro
 
 // MARK: - Encoding Containers
 // Keyed HashMap Container used for [String: Any] or [Int: Any]
-fileprivate class JavaHashMapKeyedContainer<K : CodingKey> : KeyedEncodingContainerProtocol {
+private class JavaHashMapKeyedContainer<K: CodingKey> : KeyedEncodingContainerProtocol {
     
     typealias Key = K
     
@@ -256,7 +256,7 @@ fileprivate class JavaHashMapKeyedContainer<K : CodingKey> : KeyedEncodingContai
         throw JavaCodingError.notSupported("JavaHashMapContainer.encodeNil(forKey: \(key))")
     }
     
-    public func encode<T : Encodable>(_ value: T, forKey key: Key) throws {
+    public func encode<T: Encodable>(_ value: T, forKey key: Key) throws {
         let keyStorage: JNIStorageObject
         if let intValue = key.intValue {
             keyStorage = try self.encoder.box(intValue)
@@ -287,7 +287,7 @@ fileprivate class JavaHashMapKeyedContainer<K : CodingKey> : KeyedEncodingContai
     }
 }
 
-fileprivate class JavaHashMapUnkeyedContainer : UnkeyedEncodingContainer {
+private class JavaHashMapUnkeyedContainer: UnkeyedEncodingContainer {
     // MARK: Properties
     /// A reference to the encoder we're writing to.
     private let encoder: JavaEncoder
@@ -319,7 +319,7 @@ fileprivate class JavaHashMapUnkeyedContainer : UnkeyedEncodingContainer {
         throw JavaCodingError.notSupported("JavaArrayContainer.encodeNil")
     }
     
-    public func encode<T : Encodable>(_ value: T) throws {
+    public func encode<T: Encodable>(_ value: T) throws {
         let javaValue = try self.encoder.box(value)
         if let javaKey = self.javaKey {
             let result = JNI.CallObjectMethod(javaObject, methodID: HashMapPutMethod, args: [jvalue(l: javaKey.javaObject), jvalue(l: javaValue.javaObject)])
@@ -345,7 +345,7 @@ fileprivate class JavaHashMapUnkeyedContainer : UnkeyedEncodingContainer {
     }
 }
 
-fileprivate class JavaArrayContainer : UnkeyedEncodingContainer {
+private class JavaArrayContainer: UnkeyedEncodingContainer {
     // MARK: Properties
     /// A reference to the encoder we're writing to.
     private let encoder: JavaEncoder
@@ -375,7 +375,7 @@ fileprivate class JavaArrayContainer : UnkeyedEncodingContainer {
         throw JavaCodingError.notSupported("JavaArrayContainer.encodeNil")
     }
     
-    public func encode<T : Encodable>(_ value: T) throws {
+    public func encode<T: Encodable>(_ value: T) throws {
         let storeObject = try self.encoder.box(value)
         let rewrite = JNI.CallBooleanMethod(self.javaObject, methodID: CollectionAddMethod, args: [jvalue(l: storeObject.javaObject)])
         assert(rewrite == JNI.TRUE, "ArrayList should always return true from add()")
@@ -414,7 +414,7 @@ class JavaEnumValueEncodingContainer: SingleValueEncodingContainer {
         throw JavaCodingError.notSupported("JavaSingleValueEncodingContainer.encodeNil")
     }
     
-    public func encode<T : Encodable>(_ value: T) throws {
+    public func encode<T: Encodable>(_ value: T) throws {
         let rawValue = try self.encoder.box(value)
         let clazz = try JNI.getJavaClass(javaClass)
         // If jniStorage.javaObject == nil its enum, else optionSet
@@ -433,7 +433,7 @@ class JavaEnumValueEncodingContainer: SingleValueEncodingContainer {
 }
 
 // MARK: - AnyCodable Containers
-fileprivate class JavaAnyCodableContainer<K : CodingKey> : KeyedEncodingContainerProtocol {
+private class JavaAnyCodableContainer<K: CodingKey> : KeyedEncodingContainerProtocol {
 
     typealias Key = K
 
@@ -462,7 +462,7 @@ fileprivate class JavaAnyCodableContainer<K : CodingKey> : KeyedEncodingContaine
         throw JavaCodingError.notSupported("JavaObjectContainer.encodeNil(forKey: \(key)")
     }
 
-    public func encode<T : Encodable>(_ value: T, forKey key: Key) throws {
+    public func encode<T: Encodable>(_ value: T, forKey key: Key) throws {
         if key.stringValue == "typeName" {
             // ignore typeName
             return

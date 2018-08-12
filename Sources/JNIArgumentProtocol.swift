@@ -5,8 +5,8 @@
 //  Created by Andrew on 11/14/17.
 //
 
-import Foundation
 import CJavaVM
+import Foundation
 
 public protocol JNIArgumentProtocol {
     func value(locals: UnsafeMutablePointer<[jobject]>) -> jvalue

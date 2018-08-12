@@ -14,13 +14,13 @@ import Dispatch
 import Foundation
 
 @_silgen_name("JNI_OnLoad")
-public func JNI_OnLoad( jvm: UnsafeMutablePointer<JavaVM?>, ptr: UnsafeRawPointer ) -> jint {
+public func JNI_OnLoad(jvm: UnsafeMutablePointer<JavaVM?>, ptr: UnsafeRawPointer) -> jint {
     JNI.jvm = jvm
     let env: UnsafeMutablePointer<JNIEnv?>? = JNI.GetEnv()
     JNI.api = env!.pointee!.pointee
     JNI.envCache[JNI.threadKey] = env
 #if os(Android)
-    DispatchQueue.setThreadDetachCallback( JNI_DetachCurrentThread )
+    DispatchQueue.setThreadDetachCallback(JNI_DetachCurrentThread)
 #endif
 
     // Save ContextClassLoader for FindClass usage
@@ -39,7 +39,7 @@ public func JNI_OnLoad( jvm: UnsafeMutablePointer<JavaVM?>, ptr: UnsafeRawPointe
 }
 
 public func JNI_DetachCurrentThread() {
-    _ = JNI.jvm?.pointee?.pointee.DetachCurrentThread( JNI.jvm )
+    _ = JNI.jvm?.pointee?.pointee.DetachCurrentThread(JNI.jvm)
     JNI.envLock.lock()
     JNI.envCache[JNI.threadKey] = nil
     JNI.envLock.unlock()
@@ -54,10 +54,12 @@ open class JNICore {
     open var classLoader: jclass!
     open var loadClassMethodID: jmethodID!
 
-    open var envCache = [pthread_t:UnsafeMutablePointer<JNIEnv?>?]()
+    open var envCache = [pthread_t: UnsafeMutablePointer<JNIEnv?>?]()
     fileprivate let envLock = NSLock()
 
-    open var threadKey: pthread_t { return pthread_self() }
+    open var threadKey: pthread_t {
+        return pthread_self()
+    }
 
     open var env: UnsafeMutablePointer<JNIEnv?>? {
         let currentThread = threadKey
@@ -75,17 +77,17 @@ open class JNICore {
     open func AttachCurrentThread() -> UnsafeMutablePointer<JNIEnv?>? {
         var tenv: UnsafeMutablePointer<JNIEnv?>?
         if withPointerToRawPointer(to: &tenv, {
-            self.jvm?.pointee?.pointee.AttachCurrentThread( self.jvm, $0, nil )
-        } ) != jint(JNI_OK) {
-            report( "Could not attach to background jvm" )
+            self.jvm?.pointee?.pointee.AttachCurrentThread(self.jvm, $0, nil)
+        }) != jint(JNI_OK) {
+            report("Could not attach to background jvm")
         }
         return tenv
     }
 
-    open func report( _ msg: String, _ file: StaticString = #file, _ line: Int = #line ) {
-        NSLog( "\(msg) - at \(file):\(line)" )
-        if api?.ExceptionCheck( env ) != 0 {
-            api.ExceptionDescribe( env )
+    open func report(_ msg: String, _ file: StaticString = #file, _ line: Int = #line) {
+        NSLog("\(msg) - at \(file):\(line)")
+        if api?.ExceptionCheck(env) != 0 {
+            api.ExceptionDescribe(env)
         }
     }
 
@@ -93,7 +95,7 @@ open class JNICore {
                                                     _ body: @escaping (UnsafeMutablePointer<UnsafeMutableRawPointer?>) throws -> Result) rethrows -> Result {
         return try withUnsafeMutablePointer(to: &arg) {
             try $0.withMemoryRebound(to: UnsafeMutableRawPointer?.self, capacity: 1) {
-                try body( $0 )
+                try body($0)
             }
         }
     }
@@ -101,9 +103,9 @@ open class JNICore {
     open func GetEnv() -> UnsafeMutablePointer<JNIEnv?>? {
         var tenv: UnsafeMutablePointer<JNIEnv?>?
         if withPointerToRawPointer(to: &tenv, {
-            JNI.jvm?.pointee?.pointee.GetEnv(JNI.jvm, $0, jint(JNI_VERSION_1_6) )
-        } ) != jint(JNI_OK) {
-            report( "Unable to get initial JNIEnv" )
+            JNI.jvm?.pointee?.pointee.GetEnv(JNI.jvm, $0, jint(JNI_VERSION_1_6))
+        }) != jint(JNI_OK) {
+            report("Unable to get initial JNIEnv")
         }
         return tenv
     }
@@ -112,33 +114,33 @@ open class JNICore {
         ExceptionReset()
         let clazz: jclass? = JNI.CallObjectMethod(classLoader, loadClassMethodID, name)
         if clazz == nil {
-            report( "Could not find class \(name)", file, line )
+            report("Could not find class \(name)", file, line)
         }
         return clazz
     }
 
-    open func DeleteLocalRef( _ local: jobject? ) {
+    open func DeleteLocalRef(_ local: jobject?) {
         if local != nil {
-            api.DeleteLocalRef( env, local )
+            api.DeleteLocalRef(env, local)
         }
     }
 
     private var thrownCache = [pthread_t: jthrowable]()
     private let thrownLock = NSLock()
 
-    open func check<T>( _ result: T, _ locals: UnsafeMutablePointer<[jobject]>, removeLast: Bool = false, _ file: StaticString = #file, _ line: Int = #line ) -> T {
+    open func check<T>(_ result: T, _ locals: UnsafeMutablePointer<[jobject]>, removeLast: Bool = false, _ file: StaticString = #file, _ line: Int = #line) -> T {
         if removeLast && locals.pointee.count != 0 {
             locals.pointee.removeLast()
         }
         for local in locals.pointee {
-            DeleteLocalRef( local )
+            DeleteLocalRef(local)
         }
-        if api.ExceptionCheck( env ) != 0, let throwable: jthrowable = api.ExceptionOccurred( env ) {
-            report( "Exception occured", file, line )
+        if api.ExceptionCheck(env) != 0, let throwable: jthrowable = api.ExceptionOccurred(env) {
+            report("Exception occured", file, line)
             thrownLock.lock()
             thrownCache[threadKey] = throwable
             thrownLock.unlock()
-            api.ExceptionClear( env )
+            api.ExceptionClear(env)
         }
         return result
     }

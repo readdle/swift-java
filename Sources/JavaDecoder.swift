@@ -5,14 +5,13 @@
 //  Created by Andrew on 10/19/17.
 //
 
-import Foundation
 import AnyCodable
+import Foundation
 
 public class JavaDecoder: Decoder {
     
     public var codingPath = [CodingKey]()
-    
-    public var userInfo = [CodingUserInfoKey : Any]()
+    public var userInfo = [CodingUserInfoKey: Any]()
     
     fileprivate var storage = [JNIStorageObject]()
     fileprivate let package: String
@@ -25,7 +24,7 @@ public class JavaDecoder: Decoder {
         self.missingFieldsStrategy = missingFieldsStrategy
     }
     
-    public func decode<T : Decodable>(_ type: T.Type, from javaObject: jobject) throws -> T {
+    public func decode<T: Decodable>(_ type: T.Type, from javaObject: jobject) throws -> T {
         do {
             let value = try unbox(type: type, javaObject: javaObject)
             assert(self.storage.count == 0, "Missing decoding for \(self.storage.count) objects")
@@ -38,7 +37,7 @@ public class JavaDecoder: Decoder {
         }
     }
     
-    public func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
+    public func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key: CodingKey {
         guard let storageObject = self.storage.popLast() else {
             throw JavaCodingError.notSupported("No instance in stask")
         }
@@ -84,7 +83,7 @@ public class JavaDecoder: Decoder {
     
 }
 
-fileprivate class JavaObjectContainer<K : CodingKey> : KeyedDecodingContainerProtocol {
+private class JavaObjectContainer<K: CodingKey> : KeyedDecodingContainerProtocol {
         typealias Key = K
     
     var codingPath = [CodingKey]()
@@ -185,18 +184,18 @@ fileprivate class JavaObjectContainer<K : CodingKey> : KeyedDecodingContainerPro
         return try self.decodeJava(type, forKey: key)
     }
     
-    public func decodeIfPresent<T>(_ type: T.Type, forKey key: K) throws -> T? where T : Decodable {
+    public func decodeIfPresent<T>(_ type: T.Type, forKey key: K) throws -> T? where T: Decodable {
         return try self.decodeJava(type, forKey: key)
     }
     
-    func decode<T>(_ type: T.Type, forKey key: K) throws -> T where T : Decodable {
+    func decode<T>(_ type: T.Type, forKey key: K) throws -> T where T: Decodable {
         guard let result = try self.decodeJava(type, forKey: key) else {
             throw JavaCodingError.nilNotSupported("\(javaClass).\(key.stringValue)")
         }
         return result
     }
     
-    private func decodeJava<T>(_ type: T.Type, forKey key: K) throws -> T? where T : Decodable {
+    private func decodeJava<T>(_ type: T.Type, forKey key: K) throws -> T? where T: Decodable {
         return try decodeWithMissingStrategy(defaultValue: nil) {
             let classname: String
             if type == AnyCodable.self {
@@ -228,7 +227,7 @@ fileprivate class JavaObjectContainer<K : CodingKey> : KeyedDecodingContainerPro
         }
     }
     
-    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: K) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
+    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: K) throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
         throw JavaCodingError.notSupported("JavaObjectContainer.nestedContainer(keyedBy: \(type), forKey: \(key))")
     }
     
@@ -246,7 +245,7 @@ fileprivate class JavaObjectContainer<K : CodingKey> : KeyedDecodingContainerPro
     }
 }
 
-fileprivate class JavaHashMapKeyedContainer<K : CodingKey>: KeyedDecodingContainerProtocol {
+private class JavaHashMapKeyedContainer<K: CodingKey>: KeyedDecodingContainerProtocol {
         typealias Key = K
 
     var codingPath = [CodingKey]()
@@ -316,7 +315,7 @@ fileprivate class JavaHashMapKeyedContainer<K : CodingKey>: KeyedDecodingContain
         throw JavaCodingError.notSupported("JavaHashMapContainer.decodeNil(forKey: \(key))")
     }
     
-    func decode<T>(_ type: T.Type, forKey key: K) throws -> T where T : Decodable {
+    func decode<T>(_ type: T.Type, forKey key: K) throws -> T where T: Decodable {
         let typeKey: AnyHashable
         if let intValue = key.intValue {
             typeKey = intValue
@@ -335,7 +334,7 @@ fileprivate class JavaHashMapKeyedContainer<K : CodingKey>: KeyedDecodingContain
         return try self.decoder.unbox(type: type, javaObject: object)
     }
     
-    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: K) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
+    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: K) throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
         throw JavaCodingError.notSupported("JavaHashMapContainer.nestedContainer(keyedBy: \(type), forKey: \(key))")
     }
     
@@ -352,7 +351,7 @@ fileprivate class JavaHashMapKeyedContainer<K : CodingKey>: KeyedDecodingContain
     }
 }
 
-fileprivate class JavaHashMapUnkeyedContainer: UnkeyedDecodingContainer {
+private class JavaHashMapUnkeyedContainer: UnkeyedDecodingContainer {
     
     var codingPath = [CodingKey]()
     
@@ -396,7 +395,7 @@ fileprivate class JavaHashMapUnkeyedContainer: UnkeyedDecodingContainer {
         throw JavaCodingError.notSupported("JavaUnkeyedDecodingContainer.decodeNil")
     }
     
-    func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
+    func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
         if let javaCurrentKey = javaCurrentKey {
             guard let object = JNI.CallObjectMethod(self.javaObject, methodID: HashMapGetMethod, args: [jvalue(l: javaCurrentKey)]) else {
                 throw JavaCodingError.cantFindObject("HashMap[]")
@@ -419,7 +418,7 @@ fileprivate class JavaHashMapUnkeyedContainer: UnkeyedDecodingContainer {
         }
     }
     
-    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
+    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
         throw JavaCodingError.notSupported("JavaUnkeyedDecodingContainer.nestedContainer(keyedBy: \(type))")
     }
     
@@ -432,7 +431,7 @@ fileprivate class JavaHashMapUnkeyedContainer: UnkeyedDecodingContainer {
     }
 }
 
-fileprivate class JavaArrayContainer: UnkeyedDecodingContainer {
+private class JavaArrayContainer: UnkeyedDecodingContainer {
     
     var codingPath = [CodingKey]()
     
@@ -467,7 +466,7 @@ fileprivate class JavaArrayContainer: UnkeyedDecodingContainer {
         throw JavaCodingError.notSupported("JavaUnkeyedDecodingContainer.decodeNil")
     }
     
-    func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
+    func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
         guard let object = JNI.CallObjectMethod(self.javaIterator, methodID: IteratorNextMethod) else {
             throw JavaCodingError.cantFindObject("Array out of range: \(self.currentIndex)")
         }
@@ -478,7 +477,7 @@ fileprivate class JavaArrayContainer: UnkeyedDecodingContainer {
         return try self.decoder.unbox(type: type, javaObject: object)
     }
     
-    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
+    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type) throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
         throw JavaCodingError.notSupported("JavaUnkeyedDecodingContainer.nestedContainer(keyedBy: \(type))")
     }
     
@@ -491,7 +490,7 @@ fileprivate class JavaArrayContainer: UnkeyedDecodingContainer {
     }
 }
 
-fileprivate class JavaEnumContainer: SingleValueDecodingContainer {
+private class JavaEnumContainer: SingleValueDecodingContainer {
     var codingPath: [CodingKey] = []
     
     let decoder: JavaDecoder
@@ -515,7 +514,7 @@ fileprivate class JavaEnumContainer: SingleValueDecodingContainer {
         fatalError("Unsupported: JavaEnumDecodingContainer.decodeNil")
     }
     
-    func decode<T>(_ type: T.Type) throws -> T where T : Decodable {
+    func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
         let classname = self.decoder.getJavaClassname(forType: type)
         let fieldID = try JNI.getJavaField(forClass: javaClass, field: "rawValue", sig: "L\(classname);")
         guard let object = JNI.api.GetObjectField(JNI.env, javaObject, fieldID) else {
@@ -528,7 +527,7 @@ fileprivate class JavaEnumContainer: SingleValueDecodingContainer {
     }
 }
 
-fileprivate class JavaAnyCodableContainer<K : CodingKey> : KeyedDecodingContainerProtocol {
+private class JavaAnyCodableContainer<K: CodingKey> : KeyedDecodingContainerProtocol {
     typealias Key = K
 
     var codingPath = [CodingKey]()
@@ -542,10 +541,10 @@ fileprivate class JavaAnyCodableContainer<K : CodingKey> : KeyedDecodingContaine
         self.decoder = decoder
         self.jniStorage = jniStorage
         switch jniStorage.type {
-            case let .anyCodable(codable):
-                self.jniCodableType = codable
-            default:
-                fatalError("Only .anyCodable supported here")
+        case let .anyCodable(codable):
+            self.jniCodableType = codable
+        default:
+            fatalError("Only .anyCodable supported here")
         }
     }
 
@@ -557,7 +556,7 @@ fileprivate class JavaAnyCodableContainer<K : CodingKey> : KeyedDecodingContaine
         throw JavaCodingError.notSupported("JavaObjectContainer.decodeNil(forKey: \(key)")
     }
 
-    func decode<T>(_ type: T.Type, forKey key: K) throws -> T where T : Decodable {
+    func decode<T>(_ type: T.Type, forKey key: K) throws -> T where T: Decodable {
         if key.stringValue == "typeName" {
             switch jniCodableType {
             case let .object(className):
@@ -587,7 +586,7 @@ fileprivate class JavaAnyCodableContainer<K : CodingKey> : KeyedDecodingContaine
         }
     }
 
-    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: K) throws -> KeyedDecodingContainer<NestedKey> where NestedKey : CodingKey {
+    func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: K) throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey {
         throw JavaCodingError.notSupported("JavaAnyCodableContainer.nestedContainer(keyedBy: \(type), forKey: \(key))")
     }
 
@@ -640,7 +639,7 @@ extension JavaDecoder {
             let obj = JNI.api.NewLocalRef(JNI.env, javaObject)!
             let storageObject = JNIStorageObject(type: .anyCodable(codable: codableType), javaObject: obj)
             self.storage.append(storageObject)
-            return try T.init(from: self)
+            return try T(from: self)
         }
         else {
             let stringType = "\(type)"
@@ -657,7 +656,7 @@ extension JavaDecoder {
                 storageObject = JNIStorageObject(type: .object(className: "\(package)/\(type)"), javaObject: obj)
             }
             self.storage.append(storageObject)
-            return try T.init(from: self)
+            return try T(from: self)
         }
     }
     

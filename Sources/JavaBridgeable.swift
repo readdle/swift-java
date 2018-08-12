@@ -45,7 +45,7 @@ extension String: JavaBridgeable {
     }
 
     public func javaObject() throws -> jobject {
-        guard let javaObject: jstring =  Array(utf16).withUnsafeBufferPointer({
+        guard let javaObject: jstring = Array(utf16).withUnsafeBufferPointer({
             JNI.api.NewString(JNI.env, $0.baseAddress, jsize($0.count))
         }) else {
             throw JavaCodingError.cantCreateObject("String")
@@ -56,9 +56,9 @@ extension String: JavaBridgeable {
 }
 
 // Error can't implement JavaBridgeable protocol
-fileprivate let javaExceptionClass = JNI.GlobalFindClass("java/lang/Exception")!
-fileprivate let javaExceptionConstructor = try! JNI.getJavaMethod(forClass: "java/lang/Exception", method: "<init>", sig: "(Ljava/lang/String;)V")
-fileprivate let javaExceptionGetMessage = try! JNI.getJavaMethod(forClass: "java/lang/Exception", method: "getMessage", sig: "()Ljava/lang/String;")
+private let javaExceptionClass = JNI.GlobalFindClass("java/lang/Exception")!
+private let javaExceptionConstructor = try! JNI.getJavaMethod(forClass: "java/lang/Exception", method: "<init>", sig: "(Ljava/lang/String;)V")
+private let javaExceptionGetMessage = try! JNI.getJavaMethod(forClass: "java/lang/Exception", method: "getMessage", sig: "()Ljava/lang/String;")
 
 extension Error {
 
@@ -194,7 +194,7 @@ extension UInt: JavaBridgeable {
     }
 
     public func javaObject() throws -> jobject {
-        let args = [jvalue(j:  Int64(self))]
+        let args = [jvalue(j: Int64(self))]
         return JNI.NewObject(LongClass, methodID: LongConstructor, args: args)!
     }
 
@@ -347,7 +347,7 @@ extension Data: JavaBridgeable {
         defer {
             JNI.api.ReleaseByteArrayElements(JNI.env, byteArray, pointer, 0)
         }
-        return Data.init(bytes: pointer, count: length)
+        return Data(bytes: pointer, count: length)
     }
 
     public func javaObject() throws -> jobject {
