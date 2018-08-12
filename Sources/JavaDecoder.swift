@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import java_swift
 import AnyCodable
 
 public class JavaDecoder: Decoder {

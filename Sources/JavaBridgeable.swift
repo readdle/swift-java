@@ -1,5 +1,4 @@
 import Foundation
-import java_swift
 
 public protocol JavaBridgeable: Codable {
     

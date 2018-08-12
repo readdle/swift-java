@@ -7,7 +7,6 @@
 
 import Foundation
 import CoreFoundation
-import java_swift
 import AnyCodable
 
 public enum MissingFieldsStrategy: Error {

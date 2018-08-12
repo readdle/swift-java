@@ -3,7 +3,6 @@
 //
 
 import Foundation
-import java_swift
 import CJavaVM
 
 public typealias JavaEncodableClosure = (Encodable) throws -> jobject

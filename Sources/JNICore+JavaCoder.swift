@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import java_swift
 
 fileprivate extension NSLock {
     
@@ -142,8 +141,9 @@ public extension JNICore {
         })
     }
     
-    public func GlobalFindClass( _ name: UnsafePointer<Int8>,
-                               _ file: StaticString = #file, _ line: Int = #line ) -> jclass? {
+    public func GlobalFindClass( _ name: String,
+                                 _ file: StaticString = #file,
+                                 _ line: Int = #line ) -> jclass? {
         guard let clazz: jclass = FindClass(name, file, line ) else {
             return nil
         }
@@ -298,4 +298,30 @@ public extension JNICore {
         return String(javaObject: javaClassName).replacingOccurrences(of: ".", with: "/")
     }
     
+}
+
+extension String {
+
+    public init( javaObject: jobject? ) {
+        var isCopy: jboolean = 0
+        if let javaObject: jobject = javaObject, let value: UnsafePointer<jchar> = JNI.api.GetStringChars( JNI.env, javaObject, &isCopy ) {
+            self.init( utf16CodeUnits: value, count: Int(JNI.api.GetStringLength( JNI.env, javaObject )) )
+            if isCopy != 0 || true {
+                JNI.api.ReleaseStringChars( JNI.env, javaObject, value ) ////
+            }
+        }
+        else {
+            self.init()
+        }
+    }
+
+    public func localJavaObject( _ locals: UnsafeMutablePointer<[jobject]> ) -> jobject? {
+        if let javaObject: jstring =  Array(utf16).withUnsafeBufferPointer( {
+            JNI.env?.pointee?.pointee.NewString( JNI.env, $0.baseAddress, jsize($0.count) )
+        } ) {
+            locals.pointee.append( javaObject )
+            return javaObject
+        }
+        return nil
+    }
 }

@@ -3,7 +3,6 @@
 //
 
 import Foundation
-import java_swift
 
 // MARK: Java Classnames
 let ObjectClassname = "java/lang/Object"

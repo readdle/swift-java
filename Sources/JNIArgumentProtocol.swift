@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import java_swift
+import CJavaVM
 
 public protocol JNIArgumentProtocol {
     func value(locals: UnsafeMutablePointer<[jobject]>) -> jvalue

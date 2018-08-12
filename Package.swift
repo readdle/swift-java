@@ -11,12 +11,12 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(url: "https://github.com/andriydruk/java_swift.git", .exact("2.1.2")),
+        .package(url: "https://github.com/SwiftJava/CJavaVM.git", .exact("1.1.3")),
     ],
     targets: [
         .target(
             name: "Java",
-            dependencies: ["java_swift"],
+            /* dependencies: ["CJavaVM"], */
             path: "Sources"
         ),
     ],
