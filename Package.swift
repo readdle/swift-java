@@ -12,11 +12,12 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/SwiftJava/CJavaVM.git", .exact("1.1.3")),
+        .package(url: "https://github.com/andriydruk/swift-anycodable.git", .exact("1.0.0")),
     ],
     targets: [
         .target(
             name: "Java",
-            /* dependencies: ["CJavaVM"], */
+            dependencies: ["AnyCodable"],
             path: "Sources"
         ),
     ],
