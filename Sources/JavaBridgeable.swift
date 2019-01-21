@@ -76,24 +76,44 @@ extension String: JavaBridgeable {
 // Error can't implement JavaBridgeable protocol
 fileprivate let javaExceptionClass = JNI.GlobalFindClass("java/lang/Exception")!
 fileprivate let javaExceptionConstructor = try! JNI.getJavaMethod(forClass: "java/lang/Exception", method: "<init>", sig: "(Ljava/lang/String;)V")
-fileprivate let javaExceptionGetMessage = try! JNI.getJavaMethod(forClass: "java/lang/Exception", method: "getMessage", sig: "()Ljava/lang/String;")
+
+fileprivate let JavaErrorMessageKey = "JavaErrorMessageKey"
+fileprivate let JavaErrorStackTrace = "JavaErrorStackTrace"
 
 extension Error {
 
+    public static var javaErrorMessageKey: String {
+        return JavaErrorMessageKey
+    }
+
+    public static var javaErrorStackTrace: String {
+        return JavaErrorStackTrace
+    }
+
     public static func from(javaObject: jobject) throws -> Error {
-        let domain: String
-        let code: String
-        if let javaMessage = JNI.CallObjectMethod(javaObject, methodID: javaExceptionGetMessage) {
-            let message = try String.from(javaObject: javaMessage)
-            let parts = message.split(separator: ":")
-            domain = parts.count > 0 ? String(parts[0]) : "JavaException"
-            code = parts.count > 1 ? String(parts[1]) : "0"
+        let throwable = Throwable(javaObject: javaObject)
+        let className = throwable.className()
+        let message = throwable.getMessage()
+        let lastStackTrace = throwable.lastStackTraceString()
+        let userInfo: [String: Any] = [javaErrorMessageKey: message ?? "unavailable",
+                                       javaErrorStackTrace: lastStackTrace ?? "unavailable"]
+
+        // Try extract error according to Error.javaObject()
+        if let javaMessage = message {
+            let parts = javaMessage.split(separator: ":")
+            if parts.count > 1 {
+               let domain = String(parts[0])
+               let codeString = String(parts[1])
+               if let code = Int(codeString) {
+                   return NSError(domain: domain, code: code, userInfo: userInfo)
+               }
+            }
         }
-        else {
-            domain = "JavaException"
-            code = "0"
-        }
-        return NSError(domain: domain, code: Int(code) ?? 0)
+
+        // Plan B
+        let domain = className
+        let code = 0
+        return NSError(domain: domain, code: code, userInfo: userInfo)
     }
 
     public func javaObject() throws -> jobject {
