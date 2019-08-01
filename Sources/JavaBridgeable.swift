@@ -38,9 +38,9 @@ extension UInt32: JavaBridgeable {}
 extension UInt64: JavaBridgeable {}
 extension Float: JavaBridgeable {}
 extension Double: JavaBridgeable {}
-extension Array: JavaBridgeable {}
-extension Dictionary: JavaBridgeable {}
-extension Set: JavaBridgeable {}
+extension Array: JavaBridgeable where Element: Codable {}
+extension Dictionary: JavaBridgeable where Key: Codable, Value: Codable {}
+extension Set: JavaBridgeable where Element: Codable {}
 extension Date: JavaBridgeable {}
 extension Data: JavaBridgeable {}
 extension URL: JavaBridgeable {}
