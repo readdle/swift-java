@@ -116,14 +116,8 @@ extension Error {
     }
 
     public func javaObject() throws -> jobject {
-        let message: String
-        if let nsError = self as? NSError {
-            message = "\(nsError.domain):\(nsError.code)"
-        }
-        else {
-            message = String(reflecting: type(of: self))
-        }
-
+        let nsError = self as NSError
+        let message = "\(nsError.domain):\(nsError.code)"
         guard let javaObject = JNI.NewObject(javaExceptionClass, methodID: javaExceptionConstructor, args: [jvalue(l: try message.javaObject())]) else {
             throw JavaCodingError.cantCreateObject("java/lang/Exception")
         }
