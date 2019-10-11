@@ -62,8 +62,8 @@ extension String: JavaBridgeable {
     }
 
     public func javaObject() throws -> jobject {
-        guard let javaObject: jstring =  Array(utf16).withUnsafeBufferPointer({
-            JNI.api.NewString(JNI.env, $0.baseAddress, jsize($0.count))
+        guard let javaObject: jstring = self.withCString ({ ptr in
+            JNI.api.NewStringUTF(JNI.env, ptr)
         }) else {
             throw JavaCodingError.cantCreateObject("String")
         }
