@@ -115,6 +115,10 @@ extension Error {
         return NSError(domain: domain, code: code, userInfo: userInfo)
     }
 
+}
+
+#if !HIDE_ERROR_JAVA_BRIDGEABLE
+extension Error {
     public func javaObject() throws -> jobject {
         let nsError = self as NSError
         let message = "\(nsError.domain):\(nsError.code)"
@@ -123,7 +127,6 @@ extension Error {
         }
         return javaObject
     }
-
 }
 
 extension Error where Self: RawRepresentable, Self.RawValue: SignedInteger {
@@ -151,3 +154,4 @@ extension Error where Self: RawRepresentable, Self.RawValue: UnsignedInteger {
         return javaObject
     }
 }
+#endif
