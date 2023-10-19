@@ -12,8 +12,8 @@ let package = Package(
     ],
     dependencies: [
         // TODO: remove coder and java_swift dependencies
-        .package(url: "https://github.com/readdle/swift-java-coder.git", .upToNextMinor(from: "1.0.7")),
-        .package(url: "https://github.com/readdle/java_swift.git", .upToNextMinor(from: "2.1.4")),
+        .package(url: "https://github.com/readdle/swift-java-coder.git", .upToNextMinor(from: "1.1.0")),
+        .package(url: "https://github.com/readdle/java_swift.git", .upToNextMinor(from: "2.2.0")),
     ],
     targets: [
         .target(
